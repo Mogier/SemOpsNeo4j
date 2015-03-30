@@ -11,7 +11,7 @@ In order to run this programm, you'll need to do the following things :
 - Get those programms : 
   1. [TreeGenerator](https://github.com/Mogier/terms-analysis)
   2. [GexfParser](https://github.com/Mogier/GexfParserForNeo4jDB)
-- Open all three project in Eclipse.
+- Open all three projects in Eclipse.
 - Add TreeGenerator and GexfParser to SemOpsNeo4j's buildpath.
 - Make sure you have a Wordnet dictionnary in your computer.
 - Make sure you've edited the config.ini file in TreeGenerator repository.
