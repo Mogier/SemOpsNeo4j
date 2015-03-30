@@ -8,12 +8,12 @@ This programm runs the whole following process :
 
 ## Configuration
 In order to run this programm, you'll need to do the following things :
-1. Get those programms : 
-  * [TreeGenerator](https://github.com/Mogier/terms-analysis)
-  * [GexfParser](https://github.com/Mogier/GexfParserForNeo4jDB)
-2. Open all three project in Eclipse.
-3. Add TreeGenerator and GexfParser to SemOpsNeo4j's buildpath.
-4. Make sure you have a Wordnet dictionnary in your computer.
-5. Make sure you've edited the config.ini file in TreeGenerator repository.
-6. Edit the main class **SemOpsNeo4j.java** with your own parameters.
-7. Run :)
+- Get those programms : 
+  1. [TreeGenerator](https://github.com/Mogier/terms-analysis)
+  2. [GexfParser](https://github.com/Mogier/GexfParserForNeo4jDB)
+- Open all three project in Eclipse.
+- Add TreeGenerator and GexfParser to SemOpsNeo4j's buildpath.
+- Make sure you have a Wordnet dictionnary in your computer.
+- Make sure you've edited the config.ini file in TreeGenerator repository.
+- Edit the main class **SemOpsNeo4j.java** with your own parameters.
+- Run :)
