@@ -40,18 +40,14 @@ public class SemDistance {
 		Node node1;
 		Node node2;
 		double currentDistance=-1.0;
-		for(int i=0; i<nbTags; i++) {
+		for(int i=0;i<nbTags; i++) {
 			node1 = findConceptByURI("base:"+currentTags.get(i), graphDb);
-			for (int j=0;j<nbTags; j++) {
-				if(j>i){
-					node2 = findConceptByURI("base:"+currentTags.get(j), graphDb);
-					if(node1!=null && node2!=null)
-						currentDistance = wuPalmerEvolvedMeasure(node1, node2, graphDb);
-				} else if(j==i){
-					currentDistance = 1.0;
-				} else if (j<i) { //Symetrical maxtric, no need to calculate those cases
-					currentDistance = 0.0;
-				}
+			for(int j=i; j<nbTags; j++){
+				node2 = findConceptByURI("base:"+currentTags.get(j), graphDb);
+				if(node1!=null && node2!=null)
+					currentDistance = wuPalmerEvolvedMeasure(node1, node2, graphDb);
+				else
+					currentDistance = -1.0;
 				resultMatrix[i][j] = currentDistance;
 			}
 		}
@@ -59,6 +55,48 @@ public class SemDistance {
 		return resultMatrix;
 	}
 	
+	public double[][] createMatrixAllBase(ArrayList<String> allBaseTags) {
+		GraphDatabaseService graphDb = connectDB(DBname);
+		
+		//Matrix size
+		int nbTags = allBaseTags.size();
+		double[][] resultMatrix = new double[nbTags][nbTags];
+		
+		//Iterate through arraylist
+		Node node1;
+		Node node2;
+		double currentDistance=-1.0;
+		for(int i=0;i<nbTags; i++) {
+			node1 = findConceptByURI(allBaseTags.get(i), graphDb);
+			for(int j=i; j<nbTags; j++){
+				node2 = findConceptByURI(allBaseTags.get(j), graphDb);
+				if(node1!=null && node2!=null)
+					currentDistance = wuPalmerEvolvedMeasure(node1, node2, graphDb);
+				else
+					currentDistance = -1.0;
+				resultMatrix[i][j] = currentDistance;
+			}
+		}
+		graphDb.shutdown();
+		return resultMatrix;
+	}
+	
+	public ArrayList<String> findAllBaseTags() {
+		GraphDatabaseService graphDb = connectDB(DBname);
+		
+		ArrayList<String>  nodesResult= new ArrayList<String>();
+		ExecutionEngine engine = new ExecutionEngine( graphDb );
+		String query = "start n = node(*) where n.uri =~ 'base:.*' return n.uri;";
+		ExecutionResult result = (ExecutionResult) engine.execute( query);
+		
+		ResourceIterator<String> it = result.columnAs("n.uri");
+		while (it.hasNext()){
+			nodesResult.add(it.next());
+		}
+		graphDb.shutdown();
+		return nodesResult;
+	}
+
 	private double wuPalmerMeasure(Node node1, Node node2, Node rootNode, GraphDatabaseService graphDb){
 		double result = -1.0;
 		Transaction tx = graphDb.beginTx();
@@ -94,7 +132,11 @@ public class SemDistance {
 			//Wu-Palmer data
 			PathFinder<Path> finder = GraphAlgoFactory.shortestPath(
 					PathExpanders.forTypesAndDirections( RelTypes.PARENT, Direction.INCOMING, RelTypes.EQUIV, Direction.BOTH ), 20);
-			int lcaToRoot = finder.findSinglePath(rootNode,lca).length();
+			Path lcaToRootPath = finder.findSinglePath(rootNode,lca);
+			if(lcaToRootPath==null)
+				return result;
+			
+			int lcaToRoot = lcaToRootPath.length();
 			//Substract 1 cause base:xxx count as 0
 			int node1toLCA = finder.findSinglePath(lca, node1).length()-1;
 			int node2toLCA = finder.findSinglePath(lca, node2).length()-1;
@@ -211,6 +253,4 @@ public class SemDistance {
 		graphDb.shutdown();
 		return tagsToCreate;
 	}
-
-	
 }
