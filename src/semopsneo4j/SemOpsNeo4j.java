@@ -10,6 +10,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
@@ -26,6 +27,7 @@ import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.graphdb.schema.Schema;
 
 import treegenerator.TreeGenerator;
+import treegenerator.model.OnlineConcept;
 
 public class SemOpsNeo4j {
 
@@ -34,6 +36,8 @@ public class SemOpsNeo4j {
 	private static String TREE_INI_FILE_PATH;
 	private static String GEXF_DIR_PATH;
 	private static String MATRIXES_DIR_PATH;
+	
+	static final boolean GENERATE_GEXF_FILE = false;
 	/**
 	 * @param args
 	 * @throws Exception 
@@ -75,19 +79,27 @@ public class SemOpsNeo4j {
 			//Eventually create tags
 			String stringTags = StringUtils.join(tagsToCreate,SEPARATOR);
 			if(stringTags!=""){
-				String newGexfFile = treeGen.run(new String[]{stringTags,SEPARATOR,TREE_INI_FILE_PATH,GEXF_DIR_PATH,(String)pairFromMap.getKey()});
-				gexfParser.main(new String[]{newGexfFile, NEO4JDB_PATH});
+				
+				if(GENERATE_GEXF_FILE){
+					String newGexfFile = treeGen.runAndGenerateGEXF(new String[]{stringTags,SEPARATOR,TREE_INI_FILE_PATH,GEXF_DIR_PATH,(String)pairFromMap.getKey()});
+					gexfParser.main(new String[]{newGexfFile, NEO4JDB_PATH});
+				}
+				else {
+					Hashtable<String, OnlineConcept> dataModel = treeGen.run(new String[]{stringTags,SEPARATOR,TREE_INI_FILE_PATH,GEXF_DIR_PATH,(String)pairFromMap.getKey()});
+					ModelImporter modelImp = new ModelImporter();
+					modelImp.importDataModel(dataModel, NEO4JDB_PATH);
+				}
 			}
 			
 			//Compute and print distance matrix for each image
-			distanceMatrix = semDistance.createMatrix(currentTags);
-			printCSV(distanceMatrix,pairFromMap,MATRIXES_DIR_PATH);			
+//			distanceMatrix = semDistance.createMatrix(currentTags);
+//			printCSV(distanceMatrix,pairFromMap,MATRIXES_DIR_PATH);			
 		}		
 		
 		//Compute and print distance matrix for all base's tags
-		ArrayList<String> allBaseConcepts = semDistance.findAllBaseTags();
-		double[][] allTagsDistanceMatrix = semDistance.createMatrixAllBase(allBaseConcepts);
-		printCSV(allTagsDistanceMatrix,allBaseConcepts,MATRIXES_DIR_PATH);	
+//		ArrayList<String> allBaseConcepts = semDistance.findAllBaseTags();
+//		double[][] allTagsDistanceMatrix = semDistance.createMatrixAllBase(allBaseConcepts);
+//		printCSV(allTagsDistanceMatrix,allBaseConcepts,MATRIXES_DIR_PATH);	
 	}
 
 	private static void loadProperties(String fileConfig) throws FileNotFoundException, IOException {

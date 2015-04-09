@@ -48,7 +48,7 @@ public class SemDistance {
 					currentDistance = wuPalmerEvolvedMeasure(node1, node2, graphDb);
 				else
 					currentDistance = -1.0;
-				resultMatrix[i][j] = currentDistance;
+				resultMatrix[j][i] = currentDistance;
 			}
 		}
 		graphDb.shutdown();
@@ -74,7 +74,7 @@ public class SemDistance {
 					currentDistance = wuPalmerEvolvedMeasure(node1, node2, graphDb);
 				else
 					currentDistance = -1.0;
-				resultMatrix[i][j] = currentDistance;
+				resultMatrix[j][i] = currentDistance;
 			}
 		}
 		graphDb.shutdown();
