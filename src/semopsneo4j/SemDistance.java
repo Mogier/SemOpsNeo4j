@@ -131,12 +131,15 @@ public class SemDistance {
 			System.out.println(lca.getProperty("uri"));
 			//Wu-Palmer data
 			PathFinder<Path> finder = GraphAlgoFactory.shortestPath(
-					PathExpanders.forTypesAndDirections( RelTypes.PARENT, Direction.INCOMING, RelTypes.EQUIV, Direction.BOTH ), 20);
+					PathExpanders.forTypesAndDirections( 
+							RelTypes.PARENT, Direction.INCOMING, 
+							RelTypes.EQUIV, Direction.BOTH, 
+							RelTypes.VIRTUAL, Direction.INCOMING ), 20);
 			Path lcaToRootPath = finder.findSinglePath(rootNode,lca);
 			if(lcaToRootPath==null)
 				return result;
 			
-			int lcaToRoot = lcaToRootPath.length();
+			int lcaToRoot = lcaToRootPath.length()-1;
 			//Substract 1 cause base:xxx count as 0
 			int node1toLCA = finder.findSinglePath(lca, node1).length()-1;
 			int node2toLCA = finder.findSinglePath(lca, node2).length()-1;
@@ -168,7 +171,7 @@ public class SemDistance {
 	
 	private GraphDatabaseService connectDB(String DBname) {
 		GraphDatabaseService graphDb = new GraphDatabaseFactory().newEmbeddedDatabase( DBname );
-		rootNode = findConceptByURI("Wordnet:entity",graphDb);
+		rootNode = findConceptByURI("virtual:top",graphDb);
 		bottomNode = findConceptByURI("virtual:bottom",graphDb);
 		graphDb.registerTransactionEventHandler(new TransactionEventHandler<Void>() {
 			 public Void beforeCommit(TransactionData data) throws Exception {

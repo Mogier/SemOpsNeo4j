@@ -1,7 +1,6 @@
 package semopsneo4j;
 
 import gexfparserforneo4jdb.GexfParserForNeo4jDB;
-import gexfparserforneo4jdb.neo4j.RelTypes;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,8 +20,6 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.graphdb.event.TransactionData;
-import org.neo4j.graphdb.event.TransactionEventHandler;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.graphdb.schema.Schema;
 
@@ -57,7 +54,7 @@ public class SemOpsNeo4j {
 		
 		
 		//Create map
-		Map<String, ArrayList<String>> imagesTags = reader.mapFromFile("example8.cvs");
+		Map<String, ArrayList<String>> imagesTags = reader.mapFromFile("example1.cvs");
 //		Map imagesTags = reader.mapFromDatabase("jdbc:postgresql://localhost:5432/ImagesPFE", "mogier", "xxx");
 		
 		//Foreach image create matrix
@@ -92,14 +89,14 @@ public class SemOpsNeo4j {
 			}
 			
 			//Compute and print distance matrix for each image
-//			distanceMatrix = semDistance.createMatrix(currentTags);
-//			printCSV(distanceMatrix,pairFromMap,MATRIXES_DIR_PATH);			
+			distanceMatrix = semDistance.createMatrix(currentTags);
+			printCSV(distanceMatrix,pairFromMap,MATRIXES_DIR_PATH);			
 		}		
 		
 		//Compute and print distance matrix for all base's tags
-//		ArrayList<String> allBaseConcepts = semDistance.findAllBaseTags();
-//		double[][] allTagsDistanceMatrix = semDistance.createMatrixAllBase(allBaseConcepts);
-//		printCSV(allTagsDistanceMatrix,allBaseConcepts,MATRIXES_DIR_PATH);	
+		ArrayList<String> allBaseConcepts = semDistance.findAllBaseTags();
+		double[][] allTagsDistanceMatrix = semDistance.createMatrixAllBase(allBaseConcepts);
+		printCSV(allTagsDistanceMatrix,allBaseConcepts,MATRIXES_DIR_PATH);	
 	}
 
 	private static void loadProperties(String fileConfig) throws FileNotFoundException, IOException {
@@ -116,6 +113,7 @@ public class SemOpsNeo4j {
 	private static void createDB(String neo4jdbPath) {
 		GraphDatabaseService graphDb = new GraphDatabaseFactory().newEmbeddedDatabase( neo4jdbPath );
 		final Node bottomNode;
+		final Node topNode;
 		Transaction tx = graphDb.beginTx();
 		try
 		{
@@ -133,9 +131,14 @@ public class SemOpsNeo4j {
 		try
 		{
 			Label label = DynamicLabel.label( "Concept" );
+			
 			bottomNode = graphDb.createNode(label);
 			bottomNode.setProperty("uri", "virtual:bottom");
 			bottomNode.setProperty("startingConcept", "false");
+			
+			topNode = graphDb.createNode(label);
+			topNode.setProperty("uri", "virtual:top");
+			topNode.setProperty("startingConcept", "false");
 			tx2.success();
 		} finally {
 			tx2.close();

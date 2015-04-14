@@ -89,11 +89,14 @@ public class ModelImporter {
 	private GraphDatabaseService startDB(String DBname) {
 		GraphDatabaseService graphDb = new GraphDatabaseFactory().newEmbeddedDatabase( DBname );
 		final Node bottomNode = findConceptByURI("virtual:bottom", graphDb);
+		final Node topNode = findConceptByURI("virtual:top", graphDb);
 		graphDb.registerTransactionEventHandler(new TransactionEventHandler<Void>() {
 			 public Void beforeCommit(TransactionData data) throws Exception {
 				 for(Node createdNode : data.createdNodes()){
 					 if(((String)createdNode.getProperty("uri")).startsWith("base:")){
 						 bottomNode.createRelationshipTo(createdNode, RelTypes.VIRTUAL);
+					 } else if (createdNode.getProperty("uri").equals("Wordnet:entity")|| createdNode.getProperty("uri").equals("http://www.w3.org/2002/07/owl#Thing")) {
+						 createdNode.createRelationshipTo(topNode, RelTypes.VIRTUAL);
 					 }
 				 }				 
 			 return null;
