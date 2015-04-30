@@ -9,10 +9,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.DynamicLabel;
@@ -39,10 +42,13 @@ public class SemOpsNeo4j {
 	static final boolean GENERATE_GEXF_FILE = false;
 	
 	//Should we generate a global similarity matrix with all base concepts ?
-	static final boolean GENERATE_FULL_MATRIX = false;
+	static final boolean GENERATE_FULL_MATRIX_BASE = true;
+	
+	//Should we generate a global similarity matrix with all tags from the initial input ?
+	static final boolean GENERATE_FULL_MATRIX_INPUT = true;
 	
 	//Should we generate each image's similarity matrix ?
-	static final boolean GENERATE_IMAGES_MATRIX = true;
+	static final boolean GENERATE_IMAGES_MATRIX = false;
 	
 	/**
 	 * @param args
@@ -69,6 +75,7 @@ public class SemOpsNeo4j {
 		//Foreach image create matrix
 		ArrayList<String> currentTags;
 		ArrayList<String> tagsToCreate;
+		Set<String> inputTags = new TreeSet<String>();
 		double[][] distanceMatrix;
 		Iterator itMap = imagesTags.entrySet().iterator();
 		String stringTags="";
@@ -78,6 +85,9 @@ public class SemOpsNeo4j {
 			
 			Map.Entry pairFromMap = (Map.Entry) itMap.next();
 			currentTags = (ArrayList<String>) pairFromMap.getValue();
+			
+			if(GENERATE_FULL_MATRIX_INPUT)
+				inputTags.addAll(currentTags);
 			
 			//Check if all tags exist in the DB
 			tagsToCreate = semDistance.checkTags(currentTags);
@@ -104,30 +114,36 @@ public class SemOpsNeo4j {
 			}	
 		}		
 		
+		if(GENERATE_FULL_MATRIX_INPUT){
+			ArrayList<String> allTagsInput = new ArrayList<>(inputTags);
+			double[][] allTagsInputDistanceMatrix = semDistance.createMatrix(allTagsInput);
+			printCSV(allTagsInputDistanceMatrix,allTagsInput,MATRIXES_DIR_PATH, "allTagsInput.csv");	
+		}
+		
 		//Compute and print distance matrix for all base's tags
-		if(GENERATE_FULL_MATRIX){
+		if(GENERATE_FULL_MATRIX_BASE){
 			ArrayList<String> allBaseConcepts = semDistance.findAllBaseTags();
 			double[][] allTagsDistanceMatrix = semDistance.createMatrixAllBase(allBaseConcepts);
-			printCSV(allTagsDistanceMatrix,allBaseConcepts,MATRIXES_DIR_PATH);	
+			printCSV(allTagsDistanceMatrix,allBaseConcepts,MATRIXES_DIR_PATH, "allTagsBase.csv");	
 		}
 		
 		//Generate ranked lists of interesting tags
-		Iterator itMapSubLists = imagesTags.entrySet().iterator();
-		ArrayList<ArrayList<String>> currentImageSubTagLists;
-		ArrayList<String> currentImageTags;
-		
-		while(itMapSubLists.hasNext()) {
-			Map.Entry pairFromMap = (Map.Entry) itMapSubLists.next();
-			
-			//Split tags into sublists of 2 elements
-			currentImageTags = (ArrayList<String>) pairFromMap.getValue();
-			currentImageSubTagLists = splitTags(currentImageTags);
-			
-			//Find the 10 most interesting concepts for each pair of tags
-			for(int i=0;i<currentImageSubTagLists.size();i++) {
-				ArrayList<String> tenTagsForThisSubList = semDistance.findTenConcepts(currentImageSubTagLists.get(i));
-			}
-		}
+//		Iterator itMapSubLists = imagesTags.entrySet().iterator();
+//		ArrayList<ArrayList<String>> currentImageSubTagLists;
+//		ArrayList<String> currentImageTags;
+//		
+//		while(itMapSubLists.hasNext()) {
+//			Map.Entry pairFromMap = (Map.Entry) itMapSubLists.next();
+//			
+//			//Split tags into sublists of 2 elements
+//			currentImageTags = (ArrayList<String>) pairFromMap.getValue();
+//			currentImageSubTagLists = splitTags(currentImageTags);
+//			
+//			//Find the 10 most interesting concepts for each pair of tags
+//			for(int i=0;i<currentImageSubTagLists.size();i++) {
+//				ArrayList<String> tenTagsForThisSubList = semDistance.findTenConcepts(currentImageSubTagLists.get(i));
+//			}
+//		}
 	}
 
 	private static ArrayList<ArrayList<String>> splitTags(ArrayList<String> currentImageTags) {
@@ -191,20 +207,20 @@ public class SemOpsNeo4j {
 		graphDb.shutdown();
 	}
 
-	private static void printCSV(double[][] distanceMatrix,	ArrayList<String> allBaseConcepts, String matrixesDirPath) throws FileNotFoundException {
-		PrintStream file = new PrintStream(new FileOutputStream(matrixesDirPath+"allTags.csv", false));
+	private static void printCSV(double[][] distanceMatrix,	ArrayList<String> allBaseConcepts, String matrixesDirPath, String nameFile) throws FileNotFoundException {
+		PrintStream file = new PrintStream(new FileOutputStream(matrixesDirPath+nameFile, false));
 
         int size = distanceMatrix.length;
         //Header
         file.print(",");
         for (int i = 0; i < size; i++) {
-			file.print(allBaseConcepts.get(i).substring(5)+ ",");
+			file.print((allBaseConcepts.get(i).startsWith("base:") ? allBaseConcepts.get(i).substring(5) : allBaseConcepts.get(i)) + ",");
 		}
         file.println("");
         
         //Content
 		for (int j = 0; j < size; j++) {
-			file.print(allBaseConcepts.get(j).substring(5) + ",");
+			file.print((allBaseConcepts.get(j).startsWith("base:") ? allBaseConcepts.get(j).substring(5) : allBaseConcepts.get(j)) + ",");
 			for (int i = 0; i < size; i++) {
 				file.print(distanceMatrix[i][j] + ",");
 			}
