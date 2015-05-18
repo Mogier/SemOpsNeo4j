@@ -1,5 +1,6 @@
 package semopsneo4j;
 
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
@@ -19,11 +20,20 @@ import org.neo4j.graphdb.event.TransactionEventHandler;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 
 import treegenerator.model.OnlineConcept;
+import treegenerator.services.Inflector;
 
 public class ModelImporter {
+	protected GraphDatabaseService graphDb;
 	
+	
+	
+	
+	public ModelImporter(String DBname) {
+		this.graphDb = startDB(DBname);
+	}
+
+
 	public void importDataModel(Hashtable<String, OnlineConcept> dataModel, String DBname) {
-		GraphDatabaseService graphDb = startDB(DBname);
 		
 		Transaction tx = graphDb.beginTx();
 		try 
@@ -110,6 +120,23 @@ public class ModelImporter {
 		}); 
 		registerShutdownHook( graphDb );
 		return graphDb;
+	}
+	
+	public ArrayList<String> checkTags(ArrayList<String> currentTags) {
+		Inflector inf = Inflector.getInstance();
+		ArrayList<String> tagsToCreate = new ArrayList<>();
+		String tag;
+		for(int i=0; i<currentTags.size(); i++) {
+			tag = currentTags.get(i);
+			if (findConceptByURI("base:"+inf.singularize(tag), graphDb)==null){
+				tagsToCreate.add(inf.singularize(tag));
+			}
+		}
+		return tagsToCreate;
+	}
+	
+	public void closeDB(){
+		this.graphDb.shutdown();
 	}
 	
 	private static Node findConceptByURI(String URI, GraphDatabaseService graphDb) {

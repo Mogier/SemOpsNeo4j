@@ -60,7 +60,7 @@ public class SemOpsNeo4j {
 		TreeGenerator treeGen;
 		GexfParserForNeo4jDB gexfParser;
 		
-		SemDistance semDistance = new SemDistance(NEO4JDB_PATH);
+		SemDistance semDistance = null;
 		DataReader reader = new DataReader();
 		//Create Neo4j DB if absent
 		if(!new File(NEO4JDB_PATH).isDirectory()) {
@@ -90,7 +90,8 @@ public class SemOpsNeo4j {
 				inputTags.addAll(currentTags);
 			
 			//Check if all tags exist in the DB
-			tagsToCreate = semDistance.checkTags(currentTags);
+			ModelImporter modelImp = new ModelImporter(NEO4JDB_PATH);
+			tagsToCreate = modelImp.checkTags(currentTags);
 
 			//Eventually create tags
 			stringTags = StringUtils.join(tagsToCreate,SEPARATOR);
@@ -102,17 +103,19 @@ public class SemOpsNeo4j {
 				}
 				else {
 					Hashtable<String, OnlineConcept> dataModel = treeGen.run(new String[]{stringTags,SEPARATOR,TREE_INI_FILE_PATH,GEXF_DIR_PATH,(String)pairFromMap.getKey()});
-					ModelImporter modelImp = new ModelImporter();
 					modelImp.importDataModel(dataModel, NEO4JDB_PATH);
 				}
 			}
-			
+			modelImp.closeDB();
 			//Compute and print distance matrix for each image
 			if(GENERATE_IMAGES_MATRIX){
+				semDistance = new SemDistance(NEO4JDB_PATH);
 				distanceMatrix = semDistance.createMatrix(currentTags);
 				printCSV(distanceMatrix,pairFromMap,MATRIXES_DIR_PATH);	
 			}	
 		}		
+		if (semDistance==null)
+			semDistance = new SemDistance(NEO4JDB_PATH);
 		
 		if(GENERATE_FULL_MATRIX_INPUT){
 			ArrayList<String> allTagsInput = new ArrayList<>(inputTags);
@@ -127,23 +130,8 @@ public class SemOpsNeo4j {
 			printCSV(allTagsDistanceMatrix,allBaseConcepts,MATRIXES_DIR_PATH, "allTagsBase.csv");	
 		}
 		
-		//Generate ranked lists of interesting tags
-//		Iterator itMapSubLists = imagesTags.entrySet().iterator();
-//		ArrayList<ArrayList<String>> currentImageSubTagLists;
-//		ArrayList<String> currentImageTags;
-//		
-//		while(itMapSubLists.hasNext()) {
-//			Map.Entry pairFromMap = (Map.Entry) itMapSubLists.next();
-//			
-//			//Split tags into sublists of 2 elements
-//			currentImageTags = (ArrayList<String>) pairFromMap.getValue();
-//			currentImageSubTagLists = splitTags(currentImageTags);
-//			
-//			//Find the 10 most interesting concepts for each pair of tags
-//			for(int i=0;i<currentImageSubTagLists.size();i++) {
-//				ArrayList<String> tenTagsForThisSubList = semDistance.findTenConcepts(currentImageSubTagLists.get(i));
-//			}
-//		}
+		semDistance.closeDB();
+		
 	}
 
 	private static ArrayList<ArrayList<String>> splitTags(ArrayList<String> currentImageTags) {

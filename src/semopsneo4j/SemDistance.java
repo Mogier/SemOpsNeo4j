@@ -3,6 +3,7 @@ package semopsneo4j;
 import gexfparserforneo4jdb.neo4j.RelTypes;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
@@ -28,26 +29,44 @@ public class SemDistance {
 	protected String DBname;
 	protected Node rootNode;
 	protected Node bottomNode;
+	protected GraphDatabaseService graphDb;
+	HashMap<String, Node> nodes;
 	
 	public SemDistance(String DBname) {
 		this.DBname = DBname;
+		this.graphDb = connectDB(DBname);
+		this.nodes = new HashMap<String, Node>();
 	}
 	
 	public double[][] createMatrix(ArrayList<String> currentTags) {
-		GraphDatabaseService graphDb = connectDB(DBname);
 		Inflector inf = Inflector.getInstance();
 		//Matrix size
 		int nbTags = currentTags.size();
 		double[][] resultMatrix = new double[nbTags][nbTags];
 		
-		//Iterate through arraylist
-		Node node1;
-		Node node2;
+		// Generate matrix
+		// Nodes are pulled out DB only once : for the matrix "first line"
+		Node node1=null;
+		Node node2=null;
 		double currentDistance=-1.0;
 		for(int i=0;i<nbTags; i++) {
-			node1 = findConceptByURI("base:"+inf.singularize(currentTags.get(i)), graphDb);
+			String singularizedBaseURI1 = "base:"+inf.singularize(currentTags.get(i));
+			if(i==0){
+				node1 = findConceptByURI(singularizedBaseURI1, graphDb);
+				nodes.put(singularizedBaseURI1, node1);
+			}
+			else {
+				node1=nodes.get(singularizedBaseURI1);
+			}
 			for(int j=i; j<nbTags; j++){
-				node2 = findConceptByURI("base:"+inf.singularize(currentTags.get(j)), graphDb);
+				String singularizedBaseURI2 = "base:"+inf.singularize(currentTags.get(j));
+				if(i==0 && j>0) {
+					node2 = findConceptByURI(singularizedBaseURI2, graphDb);
+					nodes.put(singularizedBaseURI2, node2);
+				}
+				else 
+					node2 = nodes.get(singularizedBaseURI2);		
+				
 				if(node1!=null && node2!=null)
 					currentDistance = wuPalmerEvolvedMeasure(node1, node2, graphDb);
 				else
@@ -55,12 +74,11 @@ public class SemDistance {
 				resultMatrix[j][i] = currentDistance;
 			}
 		}
-		graphDb.shutdown();
 		return resultMatrix;
 	}
 	
 	public double[][] createMatrixAllBase(ArrayList<String> allBaseTags) {
-		GraphDatabaseService graphDb = connectDB(DBname);
+		Inflector inf = Inflector.getInstance();
 		
 		//Matrix size
 		int nbTags = allBaseTags.size();
@@ -71,9 +89,13 @@ public class SemDistance {
 		Node node2;
 		double currentDistance=-1.0;
 		for(int i=0;i<nbTags; i++) {
-			node1 = findConceptByURI(allBaseTags.get(i), graphDb);
+			String singularizedBaseURI1 = "base:"+inf.singularize(allBaseTags.get(i));
+			node1 = nodes.get(singularizedBaseURI1);
+//			node1 = findConceptByURI(allBaseTags.get(i), graphDb);
 			for(int j=i; j<nbTags; j++){
-				node2 = findConceptByURI(allBaseTags.get(j), graphDb);
+				String singularizedBaseURI2 = "base:"+inf.singularize(allBaseTags.get(j));
+				node2 = nodes.get(singularizedBaseURI2);
+//				node2 = findConceptByURI(allBaseTags.get(j), graphDb);
 				if(node1!=null && node2!=null)
 					currentDistance = wuPalmerEvolvedMeasure(node1, node2, graphDb);
 				else
@@ -81,12 +103,10 @@ public class SemDistance {
 				resultMatrix[j][i] = currentDistance;
 			}
 		}
-		graphDb.shutdown();
 		return resultMatrix;
 	}
 	
 	public ArrayList<String> findAllBaseTags() {
-		GraphDatabaseService graphDb = connectDB(DBname);
 		
 		ArrayList<String>  nodesResult= new ArrayList<String>();
 		ExecutionEngine engine = new ExecutionEngine( graphDb );
@@ -95,15 +115,18 @@ public class SemDistance {
 		
 		ResourceIterator<String> it = result.columnAs("n.uri");
 		while (it.hasNext()){
-			nodesResult.add(it.next());
+			nodesResult.add(it.next().substring(5));
 		}
-		graphDb.shutdown();
 		return nodesResult;
+	}
+	
+	public void closeDB(){
+		this.graphDb.shutdown();
 	}
 
 //	private double wuPalmerMeasure(Node node1, Node node2, Node rootNode, GraphDatabaseService graphDb){
 //		double result = -1.0;
-//		Transaction tx = graphDb.beginTx();
+//		Transaction tx = graphDb.beginTx();hah, 
 //		try {	
 //			Node lca = findLCA(node1, node2, graphDb);
 //			System.out.println("LCA for " + node1.getProperty("uri") + " and "+node2.getProperty("uri") + " is : " + lca.getProperty("uri"));
@@ -166,7 +189,6 @@ public class SemDistance {
 			tx.close();			
 		}
 		
-		
 		return result;
 	}
 	
@@ -180,7 +202,7 @@ public class SemDistance {
 	}
 	
 	private GraphDatabaseService connectDB(String DBname) {
-		GraphDatabaseService graphDb = new GraphDatabaseFactory().newEmbeddedDatabase( DBname );
+		graphDb = new GraphDatabaseFactory().newEmbeddedDatabase( DBname );
 		rootNode = findConceptByURI("virtual:top",graphDb);
 		bottomNode = findConceptByURI("virtual:bottom",graphDb);
 		graphDb.registerTransactionEventHandler(new TransactionEventHandler<Void>() {
@@ -251,64 +273,5 @@ public class SemDistance {
 	            graphDb.shutdown();
 	        }
 	    } );
-	}
-	
-	//Check which tags already exist in the Neo4j DB
-	public ArrayList<String> checkTags(ArrayList<String> currentTags) {
-		GraphDatabaseService graphDb = connectDB(DBname);
-		Inflector inf = Inflector.getInstance();
-		ArrayList<String> tagsToCreate = new ArrayList<>();
-		String tag;
-		for(int i=0; i<currentTags.size(); i++) {
-			tag = currentTags.get(i);
-			if (findConceptByURI("base:"+inf.singularize(tag), graphDb)==null){
-				tagsToCreate.add(inf.singularize(tag));
-			}
-		}
-		graphDb.shutdown();
-		return tagsToCreate;
-	}
-	
-	//Select the 10 best related concepts to a pair of tags
-	public ArrayList<String> findTenConcepts(ArrayList<String> tagSubList) {
-		GraphDatabaseService graphDb = connectDB(DBname);
-		TreeMap<Integer,String> orderedConcepts = new TreeMap<Integer,String>();
-		Inflector inf = Inflector.getInstance();
-		
-		Transaction tx = graphDb.beginTx();
-		try {
-			Node node1 = findConceptByURI("base:"+inf.singularize(tagSubList.get(0)), graphDb);
-			Node node2 = findConceptByURI("base:"+inf.singularize(tagSubList.get(1)), graphDb);
-			Node lca = findLCA(node1, node2, graphDb);
-			
-			//Add maximum ten concepts, lca will obviously be the most interesting 
-			//Score = distance(node1, lca) + distance (node2, lca)
-			
-			//Handle LCA's case
-			if(lca!=null){
-				Integer scoreLCA = findShortestPath(lca, node1).length() + findShortestPath(lca, node2).length() - 2;
-				
-			    //Take shortest path between lca and root and add higher concepts
-			    Path lcaToRoot = findShortestPath(rootNode,lca);
-			    Integer currentScore = scoreLCA + lcaToRoot.length()*2;
-			    if(lcaToRoot!=null){
-			    	Iterator<Node> it = lcaToRoot.nodes().iterator();
-			    	it.next(); //skip virtual:top
-				    while(it.hasNext()){
-				    	Node currentNode = it.next();
-				    	currentScore = currentScore - 2;
-				    	orderedConcepts.put(currentScore, (String)currentNode.getProperty("uri"));
-				    }
-			    }
-			}
-			System.out.println("Tags sublist : " + tagSubList);
-			System.out.println(orderedConcepts);
-			tx.success();
-		} finally {
-			tx.close();
-		}
-		
-		graphDb.shutdown();
-		return null;
 	}
 }
