@@ -25,9 +25,7 @@ import treegenerator.services.Inflector;
 public class ModelImporter {
 	protected GraphDatabaseService graphDb;
 	
-	
-	
-	
+
 	public ModelImporter(String DBname) {
 		this.graphDb = startDB(DBname);
 	}

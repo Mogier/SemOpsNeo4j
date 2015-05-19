@@ -42,10 +42,10 @@ public class SemOpsNeo4j {
 	static final boolean GENERATE_GEXF_FILE = false;
 	
 	//Should we generate a global similarity matrix with all base concepts ?
-	static final boolean GENERATE_FULL_MATRIX_BASE = true;
+	static final boolean GENERATE_FULL_MATRIX_BASE = false;
 	
 	//Should we generate a global similarity matrix with all tags from the initial input ?
-	static final boolean GENERATE_FULL_MATRIX_INPUT = true;
+	static final boolean GENERATE_FULL_MATRIX_INPUT = false;
 	
 	//Should we generate each image's similarity matrix ?
 	static final boolean GENERATE_IMAGES_MATRIX = false;
@@ -129,6 +129,8 @@ public class SemOpsNeo4j {
 			double[][] allTagsDistanceMatrix = semDistance.createMatrixAllBase(allBaseConcepts);
 			printCSV(allTagsDistanceMatrix,allBaseConcepts,MATRIXES_DIR_PATH, "allTagsBase.csv");	
 		}
+		
+		ArrayList<PairNodeScore> cand = semDistance.findNewTags(imagesTags.get("1"), 4);		
 		
 		semDistance.closeDB();
 		

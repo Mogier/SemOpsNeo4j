@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.TreeMap;
 
 import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.cypher.javacompat.ExecutionResult;
@@ -23,6 +22,9 @@ import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventHandler;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 
+import com.google.common.collect.Multiset.Entry;
+
+import scala.Array;
 import treegenerator.services.Inflector;
 
 public class SemDistance {
@@ -273,5 +275,107 @@ public class SemDistance {
 	            graphDb.shutdown();
 	        }
 	    } );
+	}
+	
+	public ArrayList<PairNodeScore> findNewTags(ArrayList<String> inputTags, int nbTagsWanted){
+		HashMap<Node,BFSTraverser> traversers = new HashMap<Node, BFSTraverser>();
+		HashMap<Node, ArrayList<PairNodeScore>> ilots = new HashMap<Node, ArrayList<PairNodeScore>>();
+		ArrayList<PairNodeScore> tagsCandidats = new ArrayList<PairNodeScore>();
+		ArrayList<Node> inputNodes = new ArrayList<Node>();
+		boolean tousParcoursTermines = false;
+		Inflector inf = Inflector.getInstance();
+		
+		// Init
+		for(String tag : inputTags){
+			String baseTag = "base:"+inf.singularize(tag);
+			Node tagNode;
+			if(nodes.containsKey(baseTag))
+				tagNode=nodes.get(baseTag);
+			else
+				tagNode=findConceptByURI(baseTag, graphDb);
+			inputNodes.add(tagNode);
+			traversers.put(tagNode, new BFSTraverser(tagNode));
+			ilots.put(tagNode, new ArrayList<PairNodeScore>());
+		}
+		
+		// Parcours
+		Transaction tx = graphDb.beginTx();
+		try {
+			while(tagsCandidats.size()<nbTagsWanted && !tousParcoursTermines){
+				tousParcoursTermines=true;
+				for(BFSTraverser traverser : traversers.values()){
+					if(traverser.hasNext()){
+						Node currentNode = traverser.next();
+						Node currentRoot = traverser.getRootNode();
+						// Wu-Palmer or simple distance
+						//double score = wuPalmerEvolvedMeasure(traverser.getRootNode(), currentNode, graphDb);
+						Path shortPath = findShortestPath(currentNode,traverser.getRootNode());
+						double score =shortPath.length();
+						ilots.get(currentRoot).add(new PairNodeScore(currentNode, score));
+						
+						if(!containsNode(currentNode, tagsCandidats)){
+							List<Node> occurences = intersection(ilots, currentNode);
+							if(occurences.size()>1){
+								double globalScore = computeScores(currentNode,ilots);
+								tagsCandidats.add(new PairNodeScore(currentNode, globalScore));
+							}
+						}
+						if(traverser.hasNext())
+							tousParcoursTermines=false;
+					}
+				}
+			}
+			System.out.println(tagsCandidats);
+			tx.success();
+		} finally {
+			tx.close();			
+		}
+		return tagsCandidats;
+	}
+
+	private boolean containsNode(Node node, ArrayList<PairNodeScore> coll){
+		for(PairNodeScore pair : coll){
+			if(pair.getNode().equals(node))
+				return true;
+		}
+		return false;
+	}
+	private double computeScores(Node currentNode, HashMap<Node, ArrayList<PairNodeScore>> ilots) {
+		double globalScore = 0.0;
+		int k=1;
+		System.err.println(currentNode.getProperty("uri"));
+		for(Node currentInputNode : ilots.keySet()){
+			System.out.println(currentInputNode.getProperty("uri"));
+			double currentScore=10.0;
+//			if(containsNode(currentNode, ilots.get(currentInputNode))){
+//				int index = ilots.get(currentInputNode).indexOf(currentNode);
+//				PairNodeScore currentPair = (PairNodeScore)ilots.get(currentInputNode).get(index);
+//				currentScore = currentPair.getScore();
+//			}
+//			else{
+				//currentScore = wuPalmerEvolvedMeasure(currentInputNode, currentNode, graphDb);
+				Path shortPath = findShortestPath(currentNode,currentInputNode);
+				if(shortPath!=null)
+					currentScore = shortPath.length();
+			//}
+				
+			globalScore+=1/	Math.pow(currentScore, k);
+			System.out.println("Current : " + currentScore + " total : " + globalScore);
+		}
+		return globalScore;
+	}
+
+	private List<Node> intersection(HashMap<Node, ArrayList<PairNodeScore>> ilots, Node currentNode) {
+		List<Node> initialNodesIntersect = new ArrayList<Node>();
+//		System.out.println("Intersection " + currentNode.getProperty("uri"));
+		for(java.util.Map.Entry<Node, ArrayList<PairNodeScore>> entry : ilots.entrySet()){
+//			System.out.println("Ilot " + entry.getKey().getProperty("uri") + " " + entry.getValue());
+			if(containsNode(currentNode, entry.getValue())){
+				initialNodesIntersect.add(entry.getKey());
+//				System.out.println("add");
+			}
+				
+		}
+		return initialNodesIntersect;
 	}
 }
