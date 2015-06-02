@@ -42,6 +42,7 @@ public class SemDistance {
 	
 	public double[][] createMatrix(ArrayList<String> currentTags) {
 		Inflector inf = Inflector.getInstance();
+		ExecutionEngine engine = new ExecutionEngine( graphDb );
 		//Matrix size
 		int nbTags = currentTags.size();
 		double[][] resultMatrix = new double[nbTags][nbTags];
@@ -70,7 +71,7 @@ public class SemDistance {
 					node2 = nodes.get(singularizedBaseURI2);		
 				
 				if(node1!=null && node2!=null)
-					currentDistance = wuPalmerEvolvedMeasure(node1, node2, graphDb);
+					currentDistance = wuPalmerEvolvedMeasure(node1, node2, engine);
 				else
 					currentDistance = -1.0;
 				resultMatrix[j][i] = currentDistance;
@@ -81,7 +82,7 @@ public class SemDistance {
 	
 	public double[][] createMatrixAllBase(ArrayList<String> allBaseTags) {
 		Inflector inf = Inflector.getInstance();
-		
+		ExecutionEngine engine = new ExecutionEngine( graphDb );
 		//Matrix size
 		int nbTags = allBaseTags.size();
 		double[][] resultMatrix = new double[nbTags][nbTags];
@@ -99,7 +100,7 @@ public class SemDistance {
 				node2 = nodes.get(singularizedBaseURI2);
 //				node2 = findConceptByURI(allBaseTags.get(j), graphDb);
 				if(node1!=null && node2!=null)
-					currentDistance = wuPalmerEvolvedMeasure(node1, node2, graphDb);
+					currentDistance = wuPalmerEvolvedMeasure(node1, node2, engine);
 				else
 					currentDistance = -1.0;
 				resultMatrix[j][i] = currentDistance;
@@ -125,35 +126,15 @@ public class SemDistance {
 	public void closeDB(){
 		this.graphDb.shutdown();
 	}
-
-//	private double wuPalmerMeasure(Node node1, Node node2, Node rootNode, GraphDatabaseService graphDb){
-//		double result = -1.0;
-//		Transaction tx = graphDb.beginTx();hah, 
-//		try {	
-//			Node lca = findLCA(node1, node2, graphDb);
-//			System.out.println("LCA for " + node1.getProperty("uri") + " and "+node2.getProperty("uri") + " is : " + lca.getProperty("uri"));
-//			PathFinder<Path> finder = GraphAlgoFactory.shortestPath(
-//					PathExpanders.forTypesAndDirections( RelTypes.PARENT, Direction.INCOMING, RelTypes.EQUIV, Direction.BOTH ), 20);
-//			int lcaToRoot = finder.findSinglePath(rootNode,lca).length();
-//			//Substract 1 cause base:xxx count as 0
-//			int node1toLCA = finder.findSinglePath(lca, node1).length()-1;
-//			int node2toLCA = finder.findSinglePath(lca, node2).length()-1;
-//			result = (double) (2*lcaToRoot)/(2*lcaToRoot+node1toLCA+node2toLCA);
-//			tx.success();
-//		} finally {
-//			tx.close();			
-//		}
-//		return result;
-//	}
 	
-	private double wuPalmerEvolvedMeasure(Node node1, Node node2, GraphDatabaseService graphDb) {
+	private double wuPalmerEvolvedMeasure(Node node1, Node node2, ExecutionEngine engine) {
 		double result = -1.0;
 		Transaction tx = graphDb.beginTx();
 		try {
 			if(node1.equals(node2))
 				return 1.0;
 			
-			Node lca = findLCA(node1, node2, graphDb);
+			Node lca = findLCA(node1, node2, engine);
 			if(lca==null){
 				return result;
 			}
@@ -244,9 +225,8 @@ public class SemDistance {
 		return nodeResult;
 	}
 
-	private Node findLCA(Node node1, Node node2, GraphDatabaseService graphDb){
+	private Node findLCA(Node node1, Node node2, ExecutionEngine engine){
 		Node nodeResult=null;
-		ExecutionEngine engine = new ExecutionEngine( graphDb );
 		String query = "MATCH path=(node1 {uri:\""+node1.getProperty("uri")+"\"})" +
 						"-[:PARENT|:EQUIV*]->lca<-[:PARENT|:EQUIV*]-"+
 						"(node2 {uri:\""+node2.getProperty("uri")+"\"})"+
@@ -367,12 +347,9 @@ public class SemDistance {
 
 	private List<Node> intersection(HashMap<Node, ArrayList<PairNodeScore>> ilots, Node currentNode) {
 		List<Node> initialNodesIntersect = new ArrayList<Node>();
-//		System.out.println("Intersection " + currentNode.getProperty("uri"));
 		for(java.util.Map.Entry<Node, ArrayList<PairNodeScore>> entry : ilots.entrySet()){
-//			System.out.println("Ilot " + entry.getKey().getProperty("uri") + " " + entry.getValue());
 			if(containsNode(currentNode, entry.getValue())){
 				initialNodesIntersect.add(entry.getKey());
-//				System.out.println("add");
 			}
 				
 		}

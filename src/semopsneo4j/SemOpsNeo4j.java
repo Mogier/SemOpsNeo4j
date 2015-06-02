@@ -45,7 +45,7 @@ public class SemOpsNeo4j {
 	static final boolean GENERATE_FULL_MATRIX_BASE = false;
 	
 	//Should we generate a global similarity matrix with all tags from the initial input ?
-	static final boolean GENERATE_FULL_MATRIX_INPUT = false;
+	static final boolean GENERATE_FULL_MATRIX_INPUT = true;
 	
 	//Should we generate each image's similarity matrix ?
 	static final boolean GENERATE_IMAGES_MATRIX = false;
@@ -130,7 +130,7 @@ public class SemOpsNeo4j {
 			printCSV(allTagsDistanceMatrix,allBaseConcepts,MATRIXES_DIR_PATH, "allTagsBase.csv");	
 		}
 		
-		ArrayList<PairNodeScore> cand = semDistance.findNewTags(imagesTags.get("1"), 4);		
+		//ArrayList<PairNodeScore> cand = semDistance.findNewTags(imagesTags.get("1"), 4);		
 		
 		semDistance.closeDB();
 		
