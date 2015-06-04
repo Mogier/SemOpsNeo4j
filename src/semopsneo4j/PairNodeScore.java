@@ -2,7 +2,7 @@ package semopsneo4j;
 
 import org.neo4j.graphdb.Node;
 
-public class PairNodeScore {
+public class PairNodeScore implements Comparable<PairNodeScore> {
 	private Node node;
 	private double score;
 	
@@ -56,6 +56,15 @@ public class PairNodeScore {
 
 	public void setScore(double score) {
 		this.score = score;
+	}
+
+	@Override
+	public int compareTo(PairNodeScore arg0) {
+		if(this.getScore()<arg0.getScore())
+			return 1;
+		else if(this.getScore()>arg0.getScore())
+			return -1;
+		return 0;
 	}
 	
 	
