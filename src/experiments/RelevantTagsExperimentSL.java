@@ -16,8 +16,8 @@ import semopsneo4j.PairNodeScore;
 public class RelevantTagsExperimentSL extends RelevantTagsExperiment {
 	protected int sizeSubLists;
 
-	public RelevantTagsExperimentSL(int maxLenthBetweenNodes, int nbCandidates,	int sizeSubLists, ArrayList<String> inputTags) {
-		super(maxLenthBetweenNodes, nbCandidates, inputTags);
+	public RelevantTagsExperimentSL(int maxLenthBetweenNodes, int nbCandidates,	int sizeSubLists) {
+		super(maxLenthBetweenNodes, nbCandidates);
 		this.sizeSubLists = sizeSubLists;
 	}
 
@@ -52,18 +52,19 @@ public class RelevantTagsExperimentSL extends RelevantTagsExperiment {
 		String NEW_LINE = System.getProperty("line.separator");
 		result.append("Type : " + this.getClass().getName() + NEW_LINE);
 		result.append("================== Parameters =================="+NEW_LINE);
-		result.append("InputTags : " + inputTags+ NEW_LINE);
+//		result.append("InputTags : " + inputTags+ NEW_LINE);
 		result.append("Nb candidates : " + nbCandidates + NEW_LINE);
 		result.append("Max dist : " + maxLenthBetweenNodes + NEW_LINE);
 		result.append("subList size : " + sizeSubLists + NEW_LINE);
 		result.append("================== Results =================="+NEW_LINE);
 		Transaction tx = RunExperiments.graphDb.beginTx();
 		try {
-			result.append(candidates);
+			result.append(candidates + NEW_LINE);
 			tx.success();
 		} finally {
 			tx.close();			
 		}
+		result.append("Exec time : " + execTime + "ms" + NEW_LINE);
 		result.append(NEW_LINE);
 		return result.toString();		
 	}

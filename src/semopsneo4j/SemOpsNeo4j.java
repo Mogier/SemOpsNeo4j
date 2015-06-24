@@ -45,7 +45,7 @@ public class SemOpsNeo4j {
 	static final boolean GENERATE_FULL_MATRIX_BASE = false;
 	
 	//Should we generate a global similarity matrix with all tags from the initial input ?
-	static final boolean GENERATE_FULL_MATRIX_INPUT = true;
+	static final boolean GENERATE_FULL_MATRIX_INPUT = false;
 	
 	//Should we generate each image's similarity matrix ?
 	static final boolean GENERATE_IMAGES_MATRIX = false;
@@ -69,8 +69,8 @@ public class SemOpsNeo4j {
 		
 		
 		//Create map
-		Map<String, ArrayList<String>> imagesTags = reader.mapFromFile("example1.cvs");
-//		Map imagesTags = reader.mapFromDatabase("jdbc:postgresql://localhost:5432/ImagesPFE", "mogier", "xxx");
+//		Map<String, ArrayList<String>> imagesTags = reader.mapFromFile("example1.cvs");
+		Map<String, ArrayList<String>> imagesTags = reader.mapFromDatabase("jdbc:postgresql://localhost:5432/ImagesPFE", "mogier", "olouise38");
 		
 		//Foreach image create matrix
 		ArrayList<String> currentTags;

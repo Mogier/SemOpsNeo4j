@@ -26,31 +26,24 @@ import treegenerator.services.Inflector;
 public abstract class RelevantTagsExperiment {	
 	int maxLenthBetweenNodes;
 	int nbCandidates;
-	protected ArrayList<String> inputTags;
 	protected List<PairNodeScore> candidates;
+	protected long execTime;
 	
-	public RelevantTagsExperiment(int maxLenthBetweenNodes, int nbCandidates, ArrayList<String> inputTags) {
+	public RelevantTagsExperiment(int maxLenthBetweenNodes, int nbCandidates) {
 		super();
 		this.maxLenthBetweenNodes = maxLenthBetweenNodes;
 		this.nbCandidates = nbCandidates;
-		this.inputTags = inputTags;
 	}
 	
 	public void findNewTags(){
+		long startTime = System.currentTimeMillis();
 		HashMap<Node,BFSTraverser> traversers = new HashMap<Node, BFSTraverser>();
 		HashMap<Node, ArrayList<PairNodeScore>> ilots = new HashMap<Node, ArrayList<PairNodeScore>>();
 		ArrayList<PairNodeScore> tagsCandidats = new ArrayList<PairNodeScore>();
 		boolean tousParcoursTermines = false;
 		Inflector inf = Inflector.getInstance();
-		
 		// Init
-		for(String tag : inputTags){
-			String baseTag = "base:"+inf.singularize(tag);
-			Node tagNode;
-			if(RunExperiments.nodes.containsKey(baseTag))
-				tagNode=RunExperiments.nodes.get(baseTag);
-			else
-				tagNode=findConceptByURI(baseTag);
+		for(Node tagNode : RunExperiments.nodes.values()){
 			traversers.put(tagNode, new BFSTraverser(tagNode));
 			ilots.put(tagNode, new ArrayList<PairNodeScore>());
 		}
@@ -73,8 +66,12 @@ public abstract class RelevantTagsExperiment {
 						if(!containsNode(currentNode, tagsCandidats)){
 							List<Node> occurences = intersection(ilots, currentNode);
 							if(occurences.size()>1){
-								double globalScore = computeScores(currentNode,ilots);
-								tagsCandidats.add(new PairNodeScore(currentNode, globalScore));
+								PairNodeScore p = new PairNodeScore(currentNode, 0.0);
+								if(!RunExperiments.nodes.containsKey(p.getLabel())){
+									double globalScore = computeScores(currentNode,ilots);
+									p.setScore(globalScore);
+									tagsCandidats.add(p);
+								}
 							}
 						}
 						if(traverser.hasNext())
@@ -88,6 +85,7 @@ public abstract class RelevantTagsExperiment {
 		}
 		candidates = tagsCandidats;
 		Collections.sort(candidates);
+		execTime = System.currentTimeMillis() - startTime;
 	}
 	
 	abstract double computeScores(Node currentNode, HashMap<Node, ArrayList<PairNodeScore>> ilots);
@@ -107,30 +105,23 @@ public abstract class RelevantTagsExperiment {
 	public void setNbCandidates(int nbCandidates) {
 		this.nbCandidates = nbCandidates;
 	}
-
-	public ArrayList<String> getInputTags() {
-		return inputTags;
-	}
-
-	public void setInputTags(ArrayList<String> inputTags) {
-		this.inputTags = inputTags;
-	}
 	
-	protected Node findConceptByURI(String URI) {
-		Node nodeResult=null;
-		ExecutionEngine engine = new ExecutionEngine( RunExperiments.graphDb );
-		String query = "MATCH (concept {uri:\""+URI+"\"})" +
-						"RETURN concept "+
-						"LIMIT 1";
-		ExecutionResult result = (ExecutionResult) engine.execute( query);
-		
-		ResourceIterator<Node> it = result.columnAs("concept");
-		if (it.hasNext()){
-			nodeResult = it.next();
-		}
-		return nodeResult;
+	public List<PairNodeScore> getCandidates() {
+		return candidates;
 	}
-	
+
+	public void setCandidates(List<PairNodeScore> candidates) {
+		this.candidates = candidates;
+	}
+
+	public long getExecTime() {
+		return execTime;
+	}
+
+	public void setExecTime(long execTime) {
+		this.execTime = execTime;
+	}
+
 	protected boolean containsNode(Node node, ArrayList<PairNodeScore> coll){
 		for(PairNodeScore pair : coll){
 			if(pair.getNode().equals(node))

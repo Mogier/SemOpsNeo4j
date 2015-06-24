@@ -14,6 +14,7 @@ import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.PathExpanders;
 import org.neo4j.graphdb.Transaction;
 
+import com.sun.org.apache.bcel.internal.generic.NEWARRAY;
 import com.sun.xml.internal.ws.wsdl.parser.MexEntityResolver;
 
 import semopsneo4j.BFSTraverser;
@@ -26,8 +27,8 @@ import treegenerator.services.Inflector;
 public class RelevantTagsExperimentWL extends RelevantTagsExperiment {
 	protected int k;
 
-	public RelevantTagsExperimentWL(int maxLenthBetweenNodes, int nbCandidates, int k,ArrayList<String> inputTags) {
-		super(maxLenthBetweenNodes, nbCandidates, inputTags); 
+	public RelevantTagsExperimentWL(int maxLenthBetweenNodes, int nbCandidates, int k) {
+		super(maxLenthBetweenNodes, nbCandidates); 
 		this.k = k;
 	}
 
@@ -58,18 +59,19 @@ public class RelevantTagsExperimentWL extends RelevantTagsExperiment {
 		String NEW_LINE = System.getProperty("line.separator");
 		result.append("Type : " + this.getClass().getName() + NEW_LINE);
 		result.append("================== Parameters =================="+NEW_LINE);
-		result.append("InputTags : " + inputTags+ NEW_LINE);
+//		result.append("InputTags : " + inputTags+ NEW_LINE);
 		result.append("Nb candidates : " + nbCandidates + NEW_LINE);
 		result.append("Max dist : " + maxLenthBetweenNodes + NEW_LINE);
 		result.append("k : " + k + NEW_LINE);
 		result.append("================== Results =================="+NEW_LINE);
 		Transaction tx = RunExperiments.graphDb.beginTx();
 		try {
-			result.append(candidates);
+			result.append(candidates + NEW_LINE);
 			tx.success();
 		} finally {
 			tx.close();			
 		}
+		result.append("Exec time : " + execTime + "ms" + NEW_LINE);
 		result.append(NEW_LINE);
 		return result.toString();		
 	}

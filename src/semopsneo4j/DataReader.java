@@ -19,7 +19,7 @@ public class DataReader {
 		
 	}
 
-	public static Map<String, ArrayList<String>> mapFromDatabase(String url, String user, String password) {
+	public Map<String, ArrayList<String>> mapFromDatabase(String url, String user, String password) {
 
 		Connection c = null;
 		Statement stmt = null;

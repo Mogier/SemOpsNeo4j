@@ -13,7 +13,7 @@ import org.neo4j.graphdb.Relationship;
  * Breadth First Search Traverser 
  */
 public class BFSTraverser {
-	protected Queue<Node> queue;// = new LinkedList<Node>();
+	protected Queue<Node> queue;
 	protected List<Node> visitedNodes;
 	protected Node rootNode;
 	

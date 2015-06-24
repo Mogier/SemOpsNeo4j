@@ -4,12 +4,20 @@ import org.neo4j.graphdb.Node;
 
 public class PairNodeScore implements Comparable<PairNodeScore> {
 	private Node node;
+	private String label;
 	private double score;
 	
 	public PairNodeScore(Node node, double score) {
 		super();
 		this.node = node;
 		this.score = score;
+		
+		if(((String)node.getProperty("uri")).startsWith("Wordnet"))
+			label = ((String)node.getProperty("uri")).substring(8).toLowerCase();
+		else if(((String)node.getProperty("uri")).startsWith("http")){
+			int lastSlash = ((String)node.getProperty("uri")).lastIndexOf('/');
+			label = ((String)node.getProperty("uri")).substring(lastSlash+1).toLowerCase();
+		}
 	}
 
 	@Override
@@ -38,8 +46,8 @@ public class PairNodeScore implements Comparable<PairNodeScore> {
 	
 	@Override
 	public String toString()
-	{
-		return this.node.getProperty("uri")+"|"+this.score;
+	{		
+		return this.label+"|"+this.score;
 	}
 
 	public Node getNode() {
@@ -56,6 +64,15 @@ public class PairNodeScore implements Comparable<PairNodeScore> {
 
 	public void setScore(double score) {
 		this.score = score;
+	}
+
+	
+	public String getLabel() {
+		return label;
+	}
+
+	public void setLabel(String label) {
+		this.label = label;
 	}
 
 	@Override

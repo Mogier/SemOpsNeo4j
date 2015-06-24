@@ -18,27 +18,21 @@ import treegenerator.services.Inflector;
 
 public class RelevantTagsExperimentDN extends RelevantTagsExperiment {
 
-	public RelevantTagsExperimentDN(int maxLenthBetweenNodes, int nbCandidates,ArrayList<String> inputTags) {
-		super(maxLenthBetweenNodes, nbCandidates, inputTags);
+	public RelevantTagsExperimentDN(int maxLenthBetweenNodes, int nbCandidates) {
+		super(maxLenthBetweenNodes, nbCandidates);
 	}
 
 	@Override
 	public void findNewTags(){
+		long startTime = System.currentTimeMillis();
 		candidates = new ArrayList<PairNodeScore>();
 		HashMap<Node,Integer> tagsCandidats = new HashMap<Node, Integer>();
 		ArrayList<Node> inputNodes = new ArrayList<Node>();
 		Inflector inf = Inflector.getInstance();
 		
 		// Init
-		for(String tag : inputTags){
-			String baseTag = "base:"+inf.singularize(tag);
-			Node tagNode;
-			if(RunExperiments.nodes.containsKey(baseTag))
-				tagNode=RunExperiments.nodes.get(baseTag);
-			else
-				tagNode=findConceptByURI(baseTag);
+		for(Node tagNode : RunExperiments.nodes.values())
 			inputNodes.add(tagNode);
-		}
 		
 		// Parcours
 		Transaction tx = RunExperiments.graphDb.beginTx();
@@ -58,7 +52,13 @@ public class RelevantTagsExperimentDN extends RelevantTagsExperiment {
 			tx.close();			
 		}	
 		Collections.sort(candidates);
+		for(int i = 0;i<candidates.size(); i++){
+			PairNodeScore p = candidates.get(i);
+			if(RunExperiments.nodes.keySet().contains(p.getLabel()))
+				candidates.remove(i);
+		}
 		candidates = candidates.subList(0, nbCandidates);
+		execTime = System.currentTimeMillis() - startTime;
 	}
 	
 	@Override
@@ -90,17 +90,17 @@ public class RelevantTagsExperimentDN extends RelevantTagsExperiment {
 		String NEW_LINE = System.getProperty("line.separator");
 		result.append("Type : " + this.getClass().getName() + NEW_LINE);
 		result.append("================== Parameters =================="+NEW_LINE);
-		result.append("InputTags : " + inputTags+ NEW_LINE);
+//		result.append("InputTags : " + inputTagsNodes+ NEW_LINE);
 		result.append("Nb candidates : " + nbCandidates + NEW_LINE);
-		result.append("Max dist : " + maxLenthBetweenNodes + NEW_LINE);
 		result.append("================== Results =================="+NEW_LINE);
 		Transaction tx = RunExperiments.graphDb.beginTx();
 		try {
-			result.append(candidates);
+			result.append(candidates + NEW_LINE);
 			tx.success();
 		} finally {
 			tx.close();			
 		}
+		result.append("Exec time : " + execTime + "ms" + NEW_LINE);
 		result.append(NEW_LINE);
 		return result.toString();		
 	}
