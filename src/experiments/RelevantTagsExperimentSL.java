@@ -13,7 +13,7 @@ import semopsneo4j.PairNodeScore;
 /*
  * This class implement an experiment with the use of sublists of input tags
  */
-public class RelevantTagsExperimentSL extends RelevantTagsExperiment {
+public class RelevantTagsExperimentSL extends RelevantTagsExperimentLists {
 	protected int sizeSubLists;
 
 	public RelevantTagsExperimentSL(int maxLenthBetweenNodes, int nbCandidates,	int sizeSubLists) {

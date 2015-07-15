@@ -55,15 +55,16 @@ public class RunExperiments {
 	    p.load(new FileInputStream("config.ini"));
 		DBname = p.getProperty("NEO4JDB_PATH","");
 		OUTPUT_FOLDER = p.getProperty("EXPERIMENTS_DIR_PATH");
-		StringBuilder result = new StringBuilder();
 		NEW_LINE = System.getProperty("line.separator");
 		
 		graphDb = connectDB(DBname);
 		DataReader reader = new DataReader();
 		Map<String, ArrayList<String>> imagesTags = reader.mapFromDatabase("jdbc:postgresql://localhost:5432/ImagesPFE", "mogier", "olouise38");
+//		Map<String, ArrayList<String>> imagesTags = reader.mapFromFile("example1.cvs");
+		System.out.println(imagesTags.size());
 		Iterator<Entry<String, ArrayList<String>>> entries = imagesTags.entrySet().iterator();
 		long total =0;
-		for(int i=0;i<1; i++){
+		for(int i=0;i<10; i++){
 			long t1 = System.currentTimeMillis();
 			nodes = new HashMap<String, Node>();
 			Entry<String, ArrayList<String>> entry = entries.next();
@@ -77,7 +78,10 @@ public class RunExperiments {
 			// 2nd case : GlobalScore take account of sublists, using the t closest distance to compute global score
 			ArrayList<RelevantTagsExperimentSL> expsSubLists = new ArrayList<RelevantTagsExperimentSL>();
 			// 3rd case : GlobalScore take account of all initial tags, looking for direct neighbors
-			RelevantTagsExperimentDN dn = new RelevantTagsExperimentDN(0, nodes.size());
+			RelevantTagsExperimentDN dn = new RelevantTagsExperimentDN(nodes.size());
+			// 4th case : Using wikipedia web pages
+			RelevantTagsExperimentWiki expWiki = new RelevantTagsExperimentWiki(nodes.size());
+
 			for(int c : C){
 				for(int d : D){
 					for(int k : K)
@@ -91,13 +95,19 @@ public class RunExperiments {
 			StringBuilder textFileBuilder = new StringBuilder();
 			StringBuilder csvFileBuilder = new StringBuilder();
 			ArrayList<RelevantTagsExperiment> testsForHTML = new ArrayList<RelevantTagsExperiment>();
-			csvFileBuilder.append(entries.next().getKey() +","+ inputTags + NEW_LINE);
+			csvFileBuilder.append(entry.getKey() +","+ inputTags + NEW_LINE);
 			csvFileBuilder.append(NEW_LINE);
 			csvFileBuilder.append("TypeTest NbCand MaxDist k/SubListSize (WL/SL)" + NEW_LINE);
 			textFileBuilder.append("Initial tags : " + inputTags + NEW_LINE);
 			textFileBuilder.append(notFoundTags.size()*100/inputTags.size()+"% " + "tags not found : " + notFoundTags + NEW_LINE);
 			textFileBuilder.append("Tags considered : " + nodes.keySet().toString() + NEW_LINE);
 			textFileBuilder.append(NEW_LINE);
+			
+			expWiki.findNewTags();
+			textFileBuilder.append(expWiki.toString());
+			csvFileBuilder.append(expWiki.getClass().getName()+" " + expWiki.getNbCandidates()  +",");
+			csvFileBuilder.append(candidatesLabels(expWiki.getCandidates())+NEW_LINE);
+			testsForHTML.add(expWiki);
 			
 			dn.findNewTags();
 			testsForHTML.add(dn);
@@ -126,6 +136,9 @@ public class RunExperiments {
 				if(test.getNbCandidates()==10)
 					testsForHTML.add(test);
 			}
+			
+
+				
 			PrintStream textFile = new PrintStream(new FileOutputStream(OUTPUT_FOLDER+entry.getKey()+".txt", false));
 			textFile.println(textFileBuilder.toString());
 			textFile.close();
@@ -207,7 +220,7 @@ public class RunExperiments {
 		htmlBuilder.append("<table cellpadding='5px'>" + NEW_LINE);
 		for (RelevantTagsExperiment test : tests){
 			htmlBuilder.append("<tr>" + NEW_LINE);
-			String type = test.getClass().getName().substring(test.getClass().getName().length()-2);
+			String type = test.getClass().getName().substring(test.getClass().getName().lastIndexOf('t')+1);
 			htmlBuilder.append("<td>" + type + "</td>" + NEW_LINE);
 			for(PairNodeScore p : test.getCandidates())
 				htmlBuilder.append("<td>" + p.getLabel() + "</td>" + NEW_LINE);

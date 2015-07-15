@@ -19,6 +19,12 @@ public class PairNodeScore implements Comparable<PairNodeScore> {
 			label = ((String)node.getProperty("uri")).substring(lastSlash+1).toLowerCase();
 		}
 	}
+	
+	public PairNodeScore(String label, double score) {
+		super();
+		this.label = label;
+		this.score = score;
+	}
 
 	@Override
 	public int hashCode() {

@@ -24,7 +24,7 @@ import treegenerator.services.Inflector;
 /*
  * This class implement an experiment with the use of the whole list of input tags
  */
-public class RelevantTagsExperimentWL extends RelevantTagsExperiment {
+public class RelevantTagsExperimentWL extends RelevantTagsExperimentLists {
 	protected int k;
 
 	public RelevantTagsExperimentWL(int maxLenthBetweenNodes, int nbCandidates, int k) {

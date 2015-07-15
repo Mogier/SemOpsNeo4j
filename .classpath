@@ -3,7 +3,9 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/TreeGenerator"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/GexfParserForNeo4jDB"/>	
+	<classpathentry combineaccessrules="false" kind="src" path="/GexfParserForNeo4jDB"/>
 	<classpathentry kind="lib" path="commons-lang3-3.3.2.jar"/>
+	<classpathentry kind="lib" path="/home/mael/Documents/WorkplaceEclipse/SemOpsNeo4j/jsoup-1.8.2.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

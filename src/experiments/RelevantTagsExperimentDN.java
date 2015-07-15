@@ -18,8 +18,8 @@ import treegenerator.services.Inflector;
 
 public class RelevantTagsExperimentDN extends RelevantTagsExperiment {
 
-	public RelevantTagsExperimentDN(int maxLenthBetweenNodes, int nbCandidates) {
-		super(maxLenthBetweenNodes, nbCandidates);
+	public RelevantTagsExperimentDN(int nbCandidates) {
+		super(nbCandidates);
 	}
 
 	@Override
@@ -28,7 +28,6 @@ public class RelevantTagsExperimentDN extends RelevantTagsExperiment {
 		candidates = new ArrayList<PairNodeScore>();
 		HashMap<Node,Integer> tagsCandidats = new HashMap<Node, Integer>();
 		ArrayList<Node> inputNodes = new ArrayList<Node>();
-		Inflector inf = Inflector.getInstance();
 		
 		// Init
 		for(Node tagNode : RunExperiments.nodes.values())
@@ -59,12 +58,6 @@ public class RelevantTagsExperimentDN extends RelevantTagsExperiment {
 		}
 		candidates = candidates.subList(0, nbCandidates);
 		execTime = System.currentTimeMillis() - startTime;
-	}
-	
-	@Override
-	double computeScores(Node currentNode,HashMap<Node, ArrayList<PairNodeScore>> ilots) {
-		// TODO Auto-generated method stub
-		return 0;
 	}
 	
 	/*
