@@ -19,6 +19,7 @@ public class RelevantTagsExperimentSL extends RelevantTagsExperimentLists {
 	public RelevantTagsExperimentSL(int maxLenthBetweenNodes, int nbCandidates,	int sizeSubLists) {
 		super(maxLenthBetweenNodes, nbCandidates);
 		this.sizeSubLists = sizeSubLists;
+		this.label = "SL";
 	}
 
 	public int getSizeSubLists() {

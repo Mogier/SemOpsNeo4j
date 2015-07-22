@@ -30,6 +30,7 @@ public class RelevantTagsExperimentWL extends RelevantTagsExperimentLists {
 	public RelevantTagsExperimentWL(int maxLenthBetweenNodes, int nbCandidates, int k) {
 		super(maxLenthBetweenNodes, nbCandidates); 
 		this.k = k;
+		this.label = "WL";
 	}
 
 	public int getK() {

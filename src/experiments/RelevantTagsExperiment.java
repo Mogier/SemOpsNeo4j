@@ -5,6 +5,7 @@ import java.util.List;
 import semopsneo4j.PairNodeScore;
 
 public abstract class RelevantTagsExperiment {
+	protected String label;
 	int nbCandidates;
 	protected List<PairNodeScore> candidates;
 	protected long execTime;

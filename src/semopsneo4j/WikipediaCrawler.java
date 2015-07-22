@@ -19,11 +19,19 @@ public class WikipediaCrawler {
 		try {
 			Document doc = Jsoup.connect(baseURL+tag).get();
 			Element para = doc.select("div#mw-content-text > p").first();
-			Elements links = para.select("a[href^=/wiki/]");
-//			System.err.println(tag);
-//			for(Element link : links)
-//				System.out.println(link.attr("title"));
+			Elements links = para.select("a[href~=/wiki/(?!Help:)(?!File:)(?!Wikipedia:)]");
 			return links;
+		} catch (IOException e) {
+			System.err.println("Page " + tag + " not found");
+			return null;
+		}
+	}
+	
+	public String getContentText(String tag) {
+		try {
+			Document doc = Jsoup.connect(baseURL+tag).get();
+			Element para = doc.select("div#mw-content-text > p").first();
+			return para.text();
 		} catch (IOException e) {
 			System.err.println("Page " + tag + " not found");
 			return null;

@@ -7,5 +7,7 @@
 	<classpathentry kind="lib" path="commons-lang3-3.3.2.jar"/>
 	<classpathentry kind="lib" path="/home/mael/Documents/WorkplaceEclipse/SemOpsNeo4j/jsoup-1.8.2.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="lib" path="/home/mael/Documents/stanford-corenlp-full-2014-08-27/stanford-corenlp-3.4.1.jar"/>
+	<classpathentry kind="lib" path="/home/mael/Documents/stanford-corenlp-full-2014-08-27/stanford-corenlp-3.4.1-models.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

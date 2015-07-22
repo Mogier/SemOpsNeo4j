@@ -12,10 +12,11 @@ import org.neo4j.graphdb.Transaction;
 import semopsneo4j.PairNodeScore;
 import semopsneo4j.WikipediaCrawler;
 
-public class RelevantTagsExperimentWiki extends RelevantTagsExperiment {
+public class RelevantTagsExperimentWikiLinks extends RelevantTagsExperiment {
 
-	public RelevantTagsExperimentWiki(int nbCandidates) {
+	public RelevantTagsExperimentWikiLinks(int nbCandidates) {
 		super(nbCandidates);
+		this.label = "WikiLinks";
 	}
 
 	@Override

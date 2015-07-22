@@ -64,7 +64,7 @@ public class RunExperiments {
 		System.out.println(imagesTags.size());
 		Iterator<Entry<String, ArrayList<String>>> entries = imagesTags.entrySet().iterator();
 		long total =0;
-		for(int i=0;i<10; i++){
+		for(int i=0;i<5; i++){
 			long t1 = System.currentTimeMillis();
 			nodes = new HashMap<String, Node>();
 			Entry<String, ArrayList<String>> entry = entries.next();
@@ -80,7 +80,8 @@ public class RunExperiments {
 			// 3rd case : GlobalScore take account of all initial tags, looking for direct neighbors
 			RelevantTagsExperimentDN dn = new RelevantTagsExperimentDN(nodes.size());
 			// 4th case : Using wikipedia web pages
-			RelevantTagsExperimentWiki expWiki = new RelevantTagsExperimentWiki(nodes.size());
+			RelevantTagsExperimentWikiLinks expWiki = new RelevantTagsExperimentWikiLinks(nodes.size());
+			RelevantTagsExperimentWikiContent expWikiC = new RelevantTagsExperimentWikiContent(nodes.size());
 
 			for(int c : C){
 				for(int d : D){
@@ -108,6 +109,12 @@ public class RunExperiments {
 			csvFileBuilder.append(expWiki.getClass().getName()+" " + expWiki.getNbCandidates()  +",");
 			csvFileBuilder.append(candidatesLabels(expWiki.getCandidates())+NEW_LINE);
 			testsForHTML.add(expWiki);
+			
+			expWikiC.findNewTags();
+			textFileBuilder.append(expWikiC.toString());
+			csvFileBuilder.append(expWikiC.getClass().getName()+" " + expWikiC.getNbCandidates()  +",");
+			csvFileBuilder.append(candidatesLabels(expWikiC.getCandidates())+NEW_LINE);
+			testsForHTML.add(expWikiC);
 			
 			dn.findNewTags();
 			testsForHTML.add(dn);
@@ -220,8 +227,7 @@ public class RunExperiments {
 		htmlBuilder.append("<table cellpadding='5px'>" + NEW_LINE);
 		for (RelevantTagsExperiment test : tests){
 			htmlBuilder.append("<tr>" + NEW_LINE);
-			String type = test.getClass().getName().substring(test.getClass().getName().lastIndexOf('t')+1);
-			htmlBuilder.append("<td>" + type + "</td>" + NEW_LINE);
+			htmlBuilder.append("<td>" + test.label + "</td>" + NEW_LINE);
 			for(PairNodeScore p : test.getCandidates())
 				htmlBuilder.append("<td>" + p.getLabel() + "</td>" + NEW_LINE);
 			htmlBuilder.append("</tr>" + NEW_LINE);

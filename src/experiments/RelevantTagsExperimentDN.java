@@ -17,9 +17,9 @@ import semopsneo4j.PairNodeScore;
 import treegenerator.services.Inflector;
 
 public class RelevantTagsExperimentDN extends RelevantTagsExperiment {
-
 	public RelevantTagsExperimentDN(int nbCandidates) {
 		super(nbCandidates);
+		this.label = "DN";
 	}
 
 	@Override
