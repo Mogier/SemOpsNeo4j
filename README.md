@@ -8,11 +8,11 @@ This program achieves several tasks :
 
 The *experiment* package contains classes used to find new tags for each image. Several methods are implemented : WholeList, SubLists, DirectNeighbors, WikiLinks, WikiContent. For each image three files will be generated with the results of the launched experiments (CSV, TXT, HTML).
 Depending on your parameters, this program can :
-	- Evaluate the results by removing P% of initial tags and calculate the distance between these and the candidates.
-	- Generate lots for an user evaluation. Each lot will contain :
-		- the images files
-		- a HTML file presenting the image, the initial tags and the candidates
-		- a CSV file in which the user will rank the candidates
+- Evaluate the results by removing P% of initial tags and calculate the distance between these and the candidates.
+- Generate lots for an user evaluation. Each lot will contain :
+	- the images files
+	- a HTML file presenting the image, the initial tags and the candidates
+	- a CSV file in which the user will rank the candidates
 
 ## Context
 This project was used for my master thesis, see [this repository](https://github.com/Mogier/master-thesis) for the complete thesis report.
