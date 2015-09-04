@@ -3,12 +3,14 @@ package experiments;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Set;
 
+import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.Transaction;
 
-import semopsneo4j.PairNodeScore;
+import semopsneo4j.SemDistance;
 
 /*
  * This class implement an experiment with the use of sublists of input tags
@@ -16,8 +18,8 @@ import semopsneo4j.PairNodeScore;
 public class RelevantTagsExperimentSL extends RelevantTagsExperimentLists {
 	protected int sizeSubLists;
 
-	public RelevantTagsExperimentSL(int maxLenthBetweenNodes, int nbCandidates,	int sizeSubLists) {
-		super(maxLenthBetweenNodes, nbCandidates);
+	public RelevantTagsExperimentSL(int maxLenthBetweenNodes, int nbCandidates,	int sizeSubLists, String imageID,Set<String> tags) {
+		super(maxLenthBetweenNodes, nbCandidates, imageID, tags);
 		this.sizeSubLists = sizeSubLists;
 		this.label = "SL";
 	}
@@ -31,10 +33,12 @@ public class RelevantTagsExperimentSL extends RelevantTagsExperimentLists {
 	}
 	
 	@Override
-	protected double computeScores(Node currentNode, HashMap<Node, ArrayList<PairNodeScore>> ilots) {
+	protected double computeScores(Node currentNode, HashMap<Node, ArrayList<Node>> ilots, ExecutionEngine engine) {
 		double globalScore = 0.0;
+		SemDistance semDist = new SemDistance(RunExperiments.DBname, RunExperiments.graphDb);
 		ArrayList<Double> scores = new ArrayList<Double>();
 		for(Node currentInputNode : ilots.keySet()){
+//			double currentScore = semDist.wuPalmerEvolvedMeasure(currentInputNode, currentNode, engine);
 			double currentScore=maxLenthBetweenNodes;
 			Path shortPath = findShortestPath(currentNode,currentInputNode);
 			if(shortPath!=null)
@@ -42,7 +46,7 @@ public class RelevantTagsExperimentSL extends RelevantTagsExperimentLists {
 			scores.add(currentScore);
 		}
 		Collections.sort(scores);
-		for(int i=0; i<sizeSubLists; i++)
+		for(int i=0; i<Math.min(sizeSubLists, scores.size()); i++)
 			globalScore+=1/scores.get(i);
 		return globalScore;
 	}

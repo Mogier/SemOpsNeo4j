@@ -1,25 +1,16 @@
 package experiments;
 
-import gexfparserforneo4jdb.neo4j.RelTypes;
-
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Set;
 
-import org.neo4j.graphalgo.GraphAlgoFactory;
-import org.neo4j.graphalgo.PathFinder;
-import org.neo4j.graphdb.Direction;
+import org.neo4j.cypher.javacompat.ExecutionEngine;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
-import org.neo4j.graphdb.PathExpanders;
 import org.neo4j.graphdb.Transaction;
 
-import com.sun.org.apache.bcel.internal.generic.NEWARRAY;
-import com.sun.xml.internal.ws.wsdl.parser.MexEntityResolver;
-
-import semopsneo4j.BFSTraverser;
 import semopsneo4j.PairNodeScore;
-import treegenerator.services.Inflector;
+import semopsneo4j.SemDistance;
 
 /*
  * This class implement an experiment with the use of the whole list of input tags
@@ -27,8 +18,8 @@ import treegenerator.services.Inflector;
 public class RelevantTagsExperimentWL extends RelevantTagsExperimentLists {
 	protected int k;
 
-	public RelevantTagsExperimentWL(int maxLenthBetweenNodes, int nbCandidates, int k) {
-		super(maxLenthBetweenNodes, nbCandidates); 
+	public RelevantTagsExperimentWL(int maxLenthBetweenNodes, int nbCandidates, int k, String imageID, Set<String> tags) {
+		super(maxLenthBetweenNodes, nbCandidates, imageID, tags); 
 		this.k = k;
 		this.label = "WL";
 	}
@@ -42,13 +33,16 @@ public class RelevantTagsExperimentWL extends RelevantTagsExperimentLists {
 	}
 	
 	@Override
-	protected double computeScores(Node currentNode, HashMap<Node, ArrayList<PairNodeScore>> ilots) {
+	protected double computeScores(Node currentNode, HashMap<Node, ArrayList<Node>> ilots, ExecutionEngine engine) {
 		double globalScore = 0.0;
+		SemDistance semDist = new SemDistance(RunExperiments.DBname, RunExperiments.graphDb);
 		for(Node currentInputNode : ilots.keySet()){
+//			double currentScore = semDist.wuPalmerEvolvedMeasure(currentInputNode, currentNode, engine);	
 			double currentScore=maxLenthBetweenNodes;
 			Path shortPath = findShortestPath(currentNode,currentInputNode);
 			if(shortPath!=null)
 				currentScore = shortPath.length();
+			
 			globalScore+=1/	Math.pow(currentScore, k);
 		}
 		return globalScore;

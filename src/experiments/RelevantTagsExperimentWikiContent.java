@@ -10,17 +10,17 @@ import semopsneo4j.PairNodeScore;
 import semopsneo4j.WikipediaCrawler;
 
 public class RelevantTagsExperimentWikiContent extends RelevantTagsExperiment {
-
-	public RelevantTagsExperimentWikiContent(int nbCandidates) {
-		super(nbCandidates);
+	protected NLPParser parser;
+	
+	public RelevantTagsExperimentWikiContent(int nbCandidates, String imageID, Set<String> tags, NLPParser parser) {
+		super(nbCandidates, imageID, tags);
 		this.label = "WikiContent";
+		this.parser = parser;
 	}
 	
-	@Override
 	void findNewTags() {
 		long startTime = System.currentTimeMillis();
 		WikipediaCrawler crawler = new WikipediaCrawler("https://en.wikipedia.org/wiki/");
-		NLPParser parser = new NLPParser();
 		candidates = new ArrayList<PairNodeScore>();
 		HashMap<String,Integer> tagsCandidats = new HashMap<String, Integer>();
 		

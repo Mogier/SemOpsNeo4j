@@ -40,6 +40,14 @@ public class SemDistance {
 		this.nodes = new HashMap<String, Node>();
 	}
 	
+	public SemDistance(String DBname, GraphDatabaseService graphDB) {
+		this.DBname = DBname;
+		this.graphDb = graphDB;
+		this.rootNode = findConceptByURI("virtual:top",this.graphDb);
+		this.bottomNode = findConceptByURI("virtual:bottom",this.graphDb);
+		this.nodes = new HashMap<String, Node>();
+	}
+	
 	public double[][] createMatrix(ArrayList<String> currentTags) {
 		Inflector inf = Inflector.getInstance();
 		ExecutionEngine engine = new ExecutionEngine( graphDb );
@@ -127,7 +135,7 @@ public class SemDistance {
 		this.graphDb.shutdown();
 	}
 	
-	private double wuPalmerEvolvedMeasure(Node node1, Node node2, ExecutionEngine engine) {
+	public double wuPalmerEvolvedMeasure(Node node1, Node node2, ExecutionEngine engine) {
 		double result = -1.0;
 		Transaction tx = graphDb.beginTx();
 		try {
@@ -175,12 +183,24 @@ public class SemDistance {
 		return result;
 	}
 	
-	private Path findShortestPath(Node node1, Node node2) {
+	public Path findShortestPath(Node node1, Node node2) {
 		PathFinder<Path> finder = GraphAlgoFactory.shortestPath(
 				PathExpanders.forTypesAndDirections( 
 						RelTypes.PARENT, Direction.INCOMING, 
 						RelTypes.EQUIV, Direction.BOTH, 
 						RelTypes.VIRTUAL, Direction.INCOMING ), 20);
+		return finder.findSinglePath(node1,node2);
+	}
+	
+	/*
+	 * Same as above but can go through all kind of rel.
+	 */
+	public Path findShortestPathAll(Node node1, Node node2) {
+		PathFinder<Path> finder = GraphAlgoFactory.shortestPath(
+				PathExpanders.forTypesAndDirections( 
+						RelTypes.PARENT, Direction.BOTH, 
+						RelTypes.EQUIV, Direction.BOTH, 
+						RelTypes.VIRTUAL, Direction.BOTH ), 20);
 		return finder.findSinglePath(node1,node2);
 	}
 	

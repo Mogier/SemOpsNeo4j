@@ -23,7 +23,8 @@ import edu.stanford.nlp.util.*;
  */
 
 public class NLPParser {
-	
+	private Properties props;
+	private StanfordCoreNLP pipeline;
 	/*
 	 * Tokenize a text
 	 * List of labels :
@@ -64,13 +65,16 @@ public class NLPParser {
         WP$ Possessive wh­pronoun
         WRB Wh­adverb
 	 */	
+	
+	public NLPParser(){
+		this.props = new Properties();
+	    this.props.setProperty("annotators", "tokenize, ssplit, pos, lemma, parse");
+	 // creates a StanfordCoreNLP object, with POS tagging, lemmatization, NER, parsing, and coreference resolution
+	    this.pipeline = new StanfordCoreNLP(props);
+	}
 	public Set<String> getTokens(String paragraph) {
 		Set<String> set = new TreeSet<String>();
-		// creates a StanfordCoreNLP object, with POS tagging, lemmatization, NER, parsing, and coreference resolution 
-	    Properties props = new Properties();
-	    props.setProperty("annotators", "tokenize, ssplit, pos, lemma, parse");
-	    StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
-	    
+
 	    // create an empty Annotation just with the given text
 	    Annotation document = new Annotation(paragraph);
 	    

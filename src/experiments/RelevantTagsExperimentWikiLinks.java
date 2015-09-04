@@ -3,6 +3,7 @@ package experiments;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Set;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -14,12 +15,11 @@ import semopsneo4j.WikipediaCrawler;
 
 public class RelevantTagsExperimentWikiLinks extends RelevantTagsExperiment {
 
-	public RelevantTagsExperimentWikiLinks(int nbCandidates) {
-		super(nbCandidates);
+	public RelevantTagsExperimentWikiLinks(int nbCandidates, String imageID, Set<String> tags) {
+		super(nbCandidates, imageID, tags);
 		this.label = "WikiLinks";
 	}
 
-	@Override
 	void findNewTags() {
 		long startTime = System.currentTimeMillis();
 		WikipediaCrawler crawler = new WikipediaCrawler("https://en.wikipedia.org/wiki/");

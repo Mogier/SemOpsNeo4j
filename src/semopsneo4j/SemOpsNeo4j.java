@@ -78,6 +78,7 @@ public class SemOpsNeo4j {
 		Set<String> inputTags = new TreeSet<String>();
 		double[][] distanceMatrix;
 		Iterator itMap = imagesTags.entrySet().iterator();
+		int c = 1;
 		String stringTags="";
 		while (itMap.hasNext()) {
 			treeGen = new TreeGenerator();
@@ -103,16 +104,18 @@ public class SemOpsNeo4j {
 				}
 				else {
 					Hashtable<String, OnlineConcept> dataModel = treeGen.run(new String[]{stringTags,SEPARATOR,TREE_INI_FILE_PATH,GEXF_DIR_PATH,(String)pairFromMap.getKey()});
-					modelImp.importDataModel(dataModel, NEO4JDB_PATH);
+					modelImp.importDataModel(dataModel, NEO4JDB_PATH, true);
 				}
 			}
 			modelImp.closeDB();
 			//Compute and print distance matrix for each image
 			if(GENERATE_IMAGES_MATRIX){
+				long start = System.currentTimeMillis();
 				semDistance = new SemDistance(NEO4JDB_PATH);
 				distanceMatrix = semDistance.createMatrix(currentTags);
 				printCSV(distanceMatrix,pairFromMap,MATRIXES_DIR_PATH);	
 			}	
+			System.err.println("Images traitées : " + c++);
 		}		
 		if (semDistance==null)
 			semDistance = new SemDistance(NEO4JDB_PATH);
@@ -133,7 +136,6 @@ public class SemOpsNeo4j {
 		//ArrayList<PairNodeScore> cand = semDistance.findNewTags(imagesTags.get("1"), 4);		
 		
 		semDistance.closeDB();
-		
 	}
 
 	private static ArrayList<ArrayList<String>> splitTags(ArrayList<String> currentImageTags) {

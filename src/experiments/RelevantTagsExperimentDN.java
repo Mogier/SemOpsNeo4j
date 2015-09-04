@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
@@ -17,12 +18,11 @@ import semopsneo4j.PairNodeScore;
 import treegenerator.services.Inflector;
 
 public class RelevantTagsExperimentDN extends RelevantTagsExperiment {
-	public RelevantTagsExperimentDN(int nbCandidates) {
-		super(nbCandidates);
+	public RelevantTagsExperimentDN(int nbCandidates, String imageID, Set<String> tags) {
+		super(nbCandidates,imageID, tags);
 		this.label = "DN";
 	}
 
-	@Override
 	public void findNewTags(){
 		long startTime = System.currentTimeMillis();
 		candidates = new ArrayList<PairNodeScore>();

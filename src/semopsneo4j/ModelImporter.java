@@ -30,8 +30,11 @@ public class ModelImporter {
 		this.graphDb = startDB(DBname);
 	}
 
+	public ModelImporter(GraphDatabaseService graphDb) {
+		this.graphDb = graphDb; 
+	}
 
-	public void importDataModel(Hashtable<String, OnlineConcept> dataModel, String DBname) {
+	public void importDataModel(Hashtable<String, OnlineConcept> dataModel, String DBname, boolean shutdownDB) {
 		
 		Transaction tx = graphDb.beginTx();
 		try 
@@ -89,7 +92,8 @@ public class ModelImporter {
 			tx.success();
 		} finally {
 			tx.close();
-			graphDb.shutdown();
+			if(shutdownDB)
+				graphDb.shutdown();
 		}
 	}
 	
